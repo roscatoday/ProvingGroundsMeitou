@@ -1,0 +1,26 @@
+<Project>
+  <!--
+    References every game assembly of $(GameDir): Meitou.*.dll, MeitouClient.dll and 0Harmony.dll (the same items in both layouts; the
+    compiler keeps only the ones the code uses). Private is $(MeitouGamePrivate): false for a mod (the game supplies them), true for an
+    offline check program that runs without the game. Import it at the end of the project.
+  -->
+  <PropertyGroup>
+    <MeitouGamePrivate Condition="'$(MeitouGamePrivate)' == ''">false</MeitouGamePrivate>
+  </PropertyGroup>
+  <Target Name="MeitouGameReferences" BeforeTargets="ResolveAssemblyReferences;BeforeResolveReferences">
+    <Error Condition="!Exists('$(GameDir)\MeitouClient.dll')"
+           Text="No Meitou game folder at '$(GameDir)'. Build with -p:GameDir=&lt;folder with MeitouClient.dll&gt; or set MEITOU_GAME_DIR." />
+    <Error Condition="'$(MeitouLayout)' == 'Modern' and Exists('$(GameDir)\Meitou.Modding.dll')"
+           Text="$(GameDir) is a classic (eleven-assembly) game; build it with -p:MeitouLayout=Classic." />
+    <Error Condition="'$(MeitouLayout)' == 'Classic' and !Exists('$(GameDir)\Meitou.Modding.dll')"
+           Text="$(GameDir) is a modern (four-assembly) game; build it with -p:MeitouLayout=Modern." />
+    <ItemGroup>
+      <_MeitouGameDll Include="$(GameDir)\Meitou.*.dll;$(GameDir)\MeitouClient.dll;$(GameDir)\0Harmony.dll" />
+      <Reference Include="%(_MeitouGameDll.Filename)">
+        <HintPath>%(_MeitouGameDll.FullPath)</HintPath>
+        <Private>$(MeitouGamePrivate)</Private>
+      </Reference>
+    </ItemGroup>
+    <Message Importance="high" Text="$(MSBuildProjectName): $(MeitouLayout) build against $(GameDir)" />
+  </Target>
+</Project>

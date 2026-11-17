@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>ProvingGroundsMeitou</AssemblyName>
+    <RootNamespace>ProvingGrounds</RootNamespace>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Core/**;Tests/**;Check/**;golden/**;upstream/**;tools/**;dist/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="Core\ProvingGrounds.Core.csproj" /></ItemGroup>
+  <!-- task 2.8: PgCheck hooks reads Members and applies the mod's own patches (PgPatches) directly -->
+  <ItemGroup><InternalsVisibleTo Include="PgCheck" /></ItemGroup>
+  <!-- task 2.7: the build's local date and time for the startPlugin line (the C++ wrote __DATE__ " " __TIME__, Plugin.cpp:15-16) -->
+  <ItemGroup><AssemblyMetadata Include="BuildStamp" Value="$([System.DateTime]::Now.ToString('yyyy-MM-ddTHH:mm:ss'))" /></ItemGroup>
+  <Import Project="$(MeitouDualDir)Meitou.GameRefs.targets" />
+</Project>

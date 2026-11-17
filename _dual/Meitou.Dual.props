@@ -1,0 +1,38 @@
+<Project>
+  <!--
+    Two builds of one mod, one per game layout (MeitouMods/_dual/README.md). Import this first thing in the mod's Directory.Build.props.
+      Classic  the eleven-assembly game: 0.16.1 nightlies, 0.17.0, 0.17.1, 0.17.2-nightly.20261108 (Meitou.Modding.dll, Meitou.Engine.dll,
+               Meitou.Ui.dll, Meitou.Rendering.dll, Meitou.Navigation.dll... beside MeitouClient.dll).
+      Modern   the four-assembly game from 0.17.2-nightly.20261109: MeitouClient.dll holds what Modding/Engine/Ui/Rendering/Navigation/Audio did,
+               under new namespaces (Meitou.Game.Host, Meitou.Game.Ui, Meitou.Game.Rendering.*, Meitou.Simulation.Navigation...).
+    dotnet build -p:MeitouLayout=Classic|Modern (default Modern). Each layout has its own bin\<layout>\ and obj\<layout>\, so the two never mix.
+    The source tells them apart with MEITOU_CLASSIC / MEITOU_MODERN.
+    GameDir: Classic defaults to MeitouClassicDir, the OLDEST classic game the build must load on: the build's references carry that game's
+    assembly version and .NET refuses a game older than the version referenced. Modern defaults to MeitouModernDir, the OLDEST modern game,
+    for the same reason (2026-11-10: with 0.17.3 installed the newest folder was 0.17.3, and a build against it would not load on 0.17.2);
+    when that folder is gone, to the newest folder under %LOCALAPPDATA%\Meitou\versions (by name). -p:GameDir=<folder> or MEITOU_GAME_DIR
+    overrides either (for checks against another game).
+  -->
+  <PropertyGroup>
+    <MeitouLayout Condition="'$(MeitouLayout)' == ''">Modern</MeitouLayout>
+    <MeitouLayoutLower>$(MeitouLayout.ToLowerInvariant())</MeitouLayoutLower>
+    <MeitouVersions>$(LOCALAPPDATA)\Meitou\versions</MeitouVersions>
+    <MeitouClassicDir Condition="'$(MeitouClassicDir)' == ''">$(MeitouVersions)\0.16.1-nightly.20261106.2</MeitouClassicDir>
+    <GameDir Condition="'$(GameDir)' == '' and '$(MEITOU_GAME_DIR)' != ''">$(MEITOU_GAME_DIR)</GameDir>
+    <GameDir Condition="'$(GameDir)' == '' and '$(MeitouLayout)' == 'Classic'">$(MeitouClassicDir)</GameDir>
+    <MeitouModernDir Condition="'$(MeitouModernDir)' == ''">$(MeitouVersions)\0.17.2-nightly.20261109</MeitouModernDir>
+    <GameDir Condition="'$(GameDir)' == '' and '$(MeitouLayout)' == 'Modern' and Exists('$(MeitouModernDir)\MeitouClient.dll')">$(MeitouModernDir)</GameDir>
+    <_MeitouVersionList Condition="'$(GameDir)' == '' and Exists('$(MeitouVersions)')">$([System.IO.Directory]::GetDirectories('$(MeitouVersions)'))</_MeitouVersionList>
+    <GameDir Condition="'$(GameDir)' == '' and '$(_MeitouVersionList)' != ''">$(_MeitouVersionList.Substring($([MSBuild]::Add($(_MeitouVersionList.LastIndexOf(';')), 1))))</GameDir>
+    <BaseIntermediateOutputPath>obj\$(MeitouLayoutLower)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\$(MeitouLayoutLower)\</BaseOutputPath>
+    <DefineConstants>$(DefineConstants);MEITOU_$(MeitouLayout.ToUpperInvariant())</DefineConstants>
+    <!-- Nothing under any bin, obj or dist folder belongs to a project: a test project's bin holds COPIES of game DLLs, and MSBuild offered them as
+         reference candidates ahead of GameDir, so a build after a game update compiled against the previous game (Gamepad, 2026-11-09). -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**;**/dist/**</DefaultItemExcludes>
+    <!-- And never look for references among the project's own files at all ({CandidateAssemblyFiles} comes before HintPath in the search):
+         dist\ holds the shim Meitou.Modding.dll, which a classic build would otherwise take instead of the game's. -->
+    <AssemblySearchPath_UseCandidateAssemblyFiles>false</AssemblySearchPath_UseCandidateAssemblyFiles>
+    <MeitouDualDir>$(MSBuildThisFileDirectory)</MeitouDualDir>
+  </PropertyGroup>
+</Project>

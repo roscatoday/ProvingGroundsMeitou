@@ -1,0 +1,10 @@
+<Project>
+  <!-- Modern layout only (owner decision D1). Builds bind to 0.17.3, the oldest game this mod supports. -->
+  <PropertyGroup>
+    <MeitouModernDir>$(LOCALAPPDATA)\Meitou\versions\0.17.3</MeitouModernDir>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)..\_dual\Meitou.Dual.props" />
+</Project>

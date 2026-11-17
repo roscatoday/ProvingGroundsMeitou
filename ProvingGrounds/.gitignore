@@ -1,0 +1,8 @@
+bin/
+obj/
+dist/
+*.user
+golden/build/
+artifacts/
+__pycache__/
+golden/third_party/

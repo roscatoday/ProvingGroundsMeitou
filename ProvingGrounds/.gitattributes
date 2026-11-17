@@ -1,0 +1,4 @@
+golden/*.cpp text eol=lf
+golden/*.py text eol=lf
+golden/*.sh text eol=lf
+golden/stubs/* text eol=lf
